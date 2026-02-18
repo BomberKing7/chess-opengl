@@ -10,7 +10,8 @@ using namespace std;
 #include <GL/glew.h>
 #define GLEW_STATIC
 #include <GLFW/glfw3.h>
-#include <opencv2/opencv.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include "geometry.h"
 #include "shader_s.h"
 #include "window_setup.h"
@@ -58,45 +59,77 @@ struct board_cell
 
 };
 
-unsigned int maketex(string src,bool mask=0,vector<Color> maskc={})
+unsigned int maketex(string src, bool mask = 0, vector<Color> maskc = {})
 {
-	unsigned int res=0;
-	cv::Mat im,im1;
-	if(!cv::haveImageReader(src))
-	{
-		cout<<src+":file can't be opened"<<endl;
-		return 0;
-	}
-	im=cv::imread(src);
-	cout<<src+" loaded succesfuly!"<<endl;
-	im1=im;
-	cv::flip(im1,im,0);
+    unsigned int res = 0;
 
-	cv::cvtColor(im,im1,cv::COLOR_BGR2RGBA);
-	im=im1;
-	cv::Vec4b pix;
-	if(mask)
-		for(int i=0; i<im.size().width; i++)
-			for(int j=0; j<im.size().height; j++)
-			{
-				pix=im.at<cv::Vec4b>(j,i);
-				for(int k=0; k<maskc.size(); k++)
-					if(pix[0]==maskc[k].r&&pix[1]==maskc[k].g&&
-						pix[2]==maskc[k].b)
-						im.at<cv::Vec4b>(j,i)[3]=0;
-				;
-			}
-	glGenTextures(1,&res);
-	glBindTexture(GL_TEXTURE_2D,res);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
+    int width, height, channels;
 
-	glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,im.size().width,im.size().height,0,
-				 GL_RGBA,GL_UNSIGNED_BYTE,im.data);
-	return res;
+    // Flip vertically (OpenGL expects bottom-left origin)
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned char* data = stbi_load(src.c_str(), &width, &height, &channels, 4);
+
+    if (!data)
+    {
+        cout << src << ": file can't be opened" << endl;
+        return 0;
+    }
+
+    cout << src << " loaded successfully!" << endl;
+
+    // Apply masking if requested
+    if (mask)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = (y * width + x) * 4;
+
+                unsigned char r = data[index + 0];
+                unsigned char g = data[index + 1];
+                unsigned char b = data[index + 2];
+                for (size_t k = 0; k < maskc.size(); k++)
+                {
+                    if (r == maskc[k].r &&
+                        g == maskc[k].g &&
+                        b == maskc[k].b)
+                    {
+                        data[index + 3] = 0; // set alpha to 0
+                    }
+                }
+            }
+        }
+    }
+
+    glGenTextures(1, &res);
+    glBindTexture(GL_TEXTURE_2D, res);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 width,
+                 height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 data);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    stbi_image_free(data);
+
+    return res;
 }
+
 
 unsigned int BUTTONS_TEXTURE,GAME_TEXTURE;
 Shader BUTTONS_SHADER,GAME_SHADER;
@@ -160,7 +193,7 @@ struct Button
 	{
 		lu=left_up;
 		rd=right_down;
-		unit u=insert_square(lu,rd,Type,{0,0},-1);
+		unit u=insert_square(lu,rd,Type,{(lu.x+rd.x)/2,(lu.y+rd.y)/2},-1);
 		VAO=u.VAO;
 		VBO=u.VBO;
 		action=func;

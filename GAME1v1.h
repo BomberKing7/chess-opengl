@@ -155,6 +155,12 @@ namespace GAME1v1
 			cx=x;
 			cy=y;
 		}
+		else
+		if(light[x+W*y]==0&&board[x+W*y]==0)
+		{
+			chosen=0;
+			
+		}
 		else if(chosen&&light[x+W*y]>0)
 		{
 			int g=board[cx+cy*W].unit_id;
@@ -598,12 +604,15 @@ namespace GAME1v1
 						if(promotion_dialog)promotion_dialog=0;
 						int x=floor((xpos-boardlu.x)/((boardrd.x-boardlu.x)/W));
 						int y=floor((ypos-boardrd.y)/((boardlu.y-boardrd.y)/H));
+						cout<<x<<" "<<y<<endl;
+						cout<<chosen<<endl;
+						cout<<board[x+y*W].color<<":"<<turn%2<<endl;
 						if(black_side)
 						{
 							x=W-1-x;
 							y=H-1-y;
 						}
-						if(chosen&&light[x+y*W]>0||board[x+y*W].color==turn%2)
+						if(chosen&&light[x+y*W]>0||board[x+y*W]>0&&turn%2==0||board[x+y*W]<0&&turn%2==1||board[x+y*W]==0)
 							light_square(x,y);
 					}
 			}
@@ -662,11 +671,15 @@ namespace GAME1v1
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_2D,GAME_TEXTURE);
+		glDisable(GL_BLEND);
 		GAME_SHADER.use();
 		for(unit X : boardunits)
 		{
 			X.draw();
 		}
+		
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for(int i=0; i<light.size(); i++)
 		{
 			if(light[i]>0)

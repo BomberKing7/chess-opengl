@@ -49,7 +49,6 @@ namespace MAIN_LABEL
 	}
 	void game_2v2_b_action()
 	{
-		
 		MAIN_LABEL::clear();
 		GAME2v2::setup();
 		GAME2v2::exit_b.action=&come_from_2v2;

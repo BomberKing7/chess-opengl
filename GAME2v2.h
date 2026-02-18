@@ -661,11 +661,15 @@ namespace GAME2v2
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		glBindTexture(GL_TEXTURE_2D,GAME_TEXTURE);
+		glDisable(GL_BLEND);
 		GAME_SHADER.use();
 		for(unit X : boardunits)
 		{
 			X.draw();
 		}
+		
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for(int i=0; i<light.size(); i++)
 		{
 			if(light[i]>0)

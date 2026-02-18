@@ -31,4 +31,7 @@ int main()
 	return 0;
 }
 
-
+//first run
+//  g++ main.cpp -o chess  -lglfw -lGLEW -lGL -ldl
+// then just
+// ./chess
