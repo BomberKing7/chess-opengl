@@ -604,9 +604,6 @@ namespace GAME1v1
 						if(promotion_dialog)promotion_dialog=0;
 						int x=floor((xpos-boardlu.x)/((boardrd.x-boardlu.x)/W));
 						int y=floor((ypos-boardrd.y)/((boardlu.y-boardrd.y)/H));
-						cout<<x<<" "<<y<<endl;
-						cout<<chosen<<endl;
-						cout<<board[x+y*W].color<<":"<<turn%2<<endl;
 						if(black_side)
 						{
 							x=W-1-x;
