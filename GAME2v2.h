@@ -154,6 +154,10 @@ namespace GAME2v2
 			chosen=1;
 			cx=x;
 			cy=y;
+		}else
+		if(light[x+W*y]==0&&board[x+W*y]==0)
+		{
+			chosen=0;
 		}
 		else if(chosen&&light[x+W*y]>0)
 		{
@@ -602,7 +606,7 @@ namespace GAME2v2
 							x=W-1-x;
 							y=H-1-y;
 						}
-						if(chosen&&light[x+y*W]>0||board[x+y*W].color==turn%4)
+						if(chosen&&light[x+y*W]>0||board[x+y*W].color==turn%4||board[x+y*W].color==0)
 							light_square(x,y);
 					}
 			}
